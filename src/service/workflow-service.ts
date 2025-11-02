@@ -94,13 +94,13 @@ export class WorkflowService {
       pensumFull.subjectsMap![subject.code] = {
         ...pensumFull.subjectsMap![subject.code],
         groupsMap: subject.groups,
-        equivalences: subject.equivalences
+        equivalences: subject.equivalences.map(e => {return{ code: e, name: "" }})
       }
 
       for (const equivalenceCode of subject.equivalences) {
         const equivalence = equivalences[equivalenceCode];
         if (!equivalence) continue;
-        if (Object.keys(pensumFull.subjectsMap![subject.code].groupsMap!).length === 0){
+        if (Object.keys(pensumFull.subjectsMap![subject.code].groupsMap!).length === 0) {
           continue;
         }
         for (const eqGroup in equivalence.groups) {
@@ -110,13 +110,15 @@ export class WorkflowService {
     }
 
     pensumFull.subjects = Object.values(pensumFull.subjectsMap!)
-    delete pensumFull.subjectsMap;
+
 
     for (const subject of pensumFull.subjects) {
       subject.groups = Object.values(subject.groupsMap!);
 
       delete subject.groupsMap;
     }
+
+    delete pensumFull.subjectsMap;
 
     return pensumFull;
   }
