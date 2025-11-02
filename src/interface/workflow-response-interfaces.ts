@@ -88,7 +88,8 @@ const PensumFullSchema = z.object({
     name: z.string().optional(),
     semesters: z.number().optional(),
     updateTeachers: z.boolean().optional(),
-    subjects: z.record(z.string(), SubjectFullSchema).optional()
+    subjectsMap: z.record(z.string(), SubjectFullSchema).optional(),
+    subjects: z.array(SubjectFullSchema).optional()
 })
 
 type PensumFull = z.infer<typeof PensumFullSchema>

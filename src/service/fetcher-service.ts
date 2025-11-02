@@ -85,12 +85,7 @@ export class FetcherService {
      * @param success `true` if all jobs were successful, `false` otherwise
      */
     static async endWorkflow(workflowId: string, success: boolean) {
-        if (success) {
-            //Gather all pensum data and send to main backend
-            //const data: PensumFull
-            const pensumFull: PensumFull = await WorkflowService.buildDataFromWorkflow(workflowId)
-            await sendRequestToMainBackend(pensumFull);
-        }
+        fetchLogger.info({ workflowId }, "Ending workflow ")
         let workflow = await getWorkflowById(workflowId);
         if (!workflow) {
             const errMsg = `Workflow with UUID ${workflowId} doesn't exists`;
@@ -98,6 +93,14 @@ export class FetcherService {
             throw Error(errMsg);
         }
         workflow = await updateWorkflowState(workflow.id, success ? WorkflowState.SUCCESS : WorkflowState.ERROR);
+
+        if (success) {
+            //Gather all pensum data and send to main backend
+            //const data: PensumFull
+            const pensumFull: PensumFull = await WorkflowService.buildDataFromWorkflow(workflowId)
+            await sendRequestToMainBackend(pensumFull);
+        }
+
         await Promise.all(
             workflow.jobs.map(
                 e => e.state === JobState.PENDING && failJob(Number(e.id), "Previous error: this job never executed")
@@ -111,7 +114,7 @@ export class FetcherService {
      * Checks if the current workflow doesn't have any jobs pending, then ends the workflow
      */
     static async checkForCompletion(workflowId: string) {
-        const count = await getPendingJobsCountByWorkflowId(workflowId);        
+        const count = await getPendingJobsCountByWorkflowId(workflowId);
         if (count === 0) {
             //Ends
             this.endWorkflow(workflowId, true);
@@ -124,12 +127,13 @@ export class FetcherService {
      */
     static async endJob(response: JobResponse) {
         const job: Job = await this.validateJob(response);
-        if(job.state != JobState.PENDING){
+        if (job.state != JobState.PENDING) {
             const errorMsg = `Tried to end already ended Job with id ${job.id}`
-            fetchLogger.error({job}, errorMsg)
+            fetchLogger.error({ job }, errorMsg)
             throw Error(errorMsg)
         }
         if (response.success) {
+            fetchLogger.info({ id: job.id }, "Ended ok");
             if (job.type === JobType.PENSUM_INFO) {
                 await this.endJobT1(job, response);
             } else {
@@ -141,7 +145,7 @@ export class FetcherService {
             await failJob(response.jobId, response.response)
             await this.endWorkflow(job.workflowId, false);
         }
-        
+
     }
 
     /**

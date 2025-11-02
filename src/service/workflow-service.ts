@@ -58,6 +58,7 @@ export class WorkflowService {
     const equivalencesArr = segregatedJobs[JobType.EQUIVALENCE_INFO].map(el => el.data as SubjectData);
 
     const equivalences: Record<string, SubjectData> = equivalencesArr.reduce((acc, obj) => {
+      if(!obj) return acc;
       const key = obj.code;
       acc[key] = obj;
       return acc
@@ -69,12 +70,13 @@ export class WorkflowService {
       name: pensumData.name,
       semesters: pensumData.semesters,
       updateTeachers: pensumData.updateTeachers,
-      subjects: {}
+      subjects: [],
+      subjectsMap: {}
     }
 
     for (const code in pensumData.subjects!) {
       const subject = pensumData.subjects[code];
-      pensumFull.subjects![code] = {
+      pensumFull.subjectsMap![code] = {
         code: code,
         credits: subject.credits,
         equivalences: [],
@@ -89,16 +91,17 @@ export class WorkflowService {
     }
 
     for (const subject of subjects) {
-      pensumFull.subjects![subject.code] = {
-        ...pensumFull.subjects![subject.code],
+      pensumFull.subjectsMap![subject.code] = {
+        ...pensumFull.subjectsMap![subject.code],
         groups: subject.groups,
         equivalences: subject.equivalences
       }
 
       for(const equivalenceCode of subject.equivalences){
         const equivalence = equivalences[equivalenceCode];
+        if(!equivalence) continue;
         for(const eqGroup in equivalence.groups){
-          pensumFull.subjects![subject.code].groups[eqGroup] = equivalence.groups[eqGroup]
+          pensumFull.subjectsMap![subject.code].groups[eqGroup] = equivalence.groups[eqGroup]
         }
       }
     }
