@@ -3,7 +3,7 @@ import IORedis from "ioredis";
 import { env } from "../env.js";
 import { queueLogger } from "../util/logger.js";
 import { FetchingRequest } from "../interface/workflow-request-interfaces.js";
-import { sendRequest } from "./sender-service.js";
+import { sendRequestToFetcher } from "./sender-service.js";
 
 const connection = new IORedis(env.REDIS_URL, { maxRetriesPerRequest: null });
 const queue = new Queue<FetchingRequest>("scraperQueue", { connection });
@@ -27,7 +27,7 @@ const worker = new Worker<FetchingRequest>(
         name: request.jobId + " - " + request.type,
       }, 'Processing job started');
 
-      await sendRequest(request);
+      await sendRequestToFetcher(request);
 
       queueLogger.debug('Starting cooldown period...');
       await sleep();
@@ -41,18 +41,8 @@ const worker = new Worker<FetchingRequest>(
       throw error; // Re-throw para que BullMQ maneje el retry
     }
   },
-  { concurrency: 1, connection }
+  { concurrency: env.WORKERS, connection }
 );
-
-worker.on("completed", async (job: Job<FetchingRequest>) => {
-
-  const request: FetchingRequest = job.data;
-
-  queueLogger.info({
-    jobId: job.id,
-    name: request.jobId + " - " + request.type,
-  }, 'Job completed');
-});
 
 worker.on("failed", async (job: Job<FetchingRequest> | undefined, err: Error) => {
   if(job === undefined){
@@ -61,7 +51,7 @@ worker.on("failed", async (job: Job<FetchingRequest> | undefined, err: Error) =>
   const request: FetchingRequest = job!.data;
   queueLogger.error({
     jobId: job!.id,
-    url: request.jobId + " - " + request.type,
+    name: `${request.jobId} - ${request.type}`,
     error: err.message
   }, 'Job failed');
 });

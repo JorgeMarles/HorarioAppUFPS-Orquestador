@@ -4,12 +4,13 @@ import { Queue } from 'bullmq';
 import { completeJob, createJob, CreateJobData, failJob, getJobById, getJobsCountByWorkflowId, getPendingJobsCountByWorkflowId } from '../repository/job-repository';
 import { FetchingRequest, FetchingRequestData } from '../interface/workflow-request-interfaces';
 import { Job, JobState, JobType, Workflow, WorkflowState } from '@prisma/client';
-import { JobResponse, PensumData, PensumDataSchema, SubjectData, SubjectDataSchema } from '../interface/workflow-response-interfaces';
+import { JobResponse, PensumData, PensumDataSchema, PensumFull, SubjectData, SubjectDataSchema } from '../interface/workflow-response-interfaces';
 import { fetchLogger } from '../util/logger';
 import { getWorkflowById, updateWorkflowState } from '../repository/workflow-repository';
 import { queue } from './queue-service';
 import cookieGetter from '../util/cookie-getter';
 import { WorkflowService } from './workflow-service';
+import { sendRequestToMainBackend } from './sender-service';
 
 //Will manage jobs with queues
 export class FetcherService {
@@ -87,7 +88,8 @@ export class FetcherService {
         if (success) {
             //Gather all pensum data and send to main backend
             //const data: PensumFull
-            await WorkflowService.buildDataFromWorkflow(workflowId)
+            const pensumFull: PensumFull = await WorkflowService.buildDataFromWorkflow(workflowId)
+            await sendRequestToMainBackend(pensumFull);
         }
         let workflow = await getWorkflowById(workflowId);
         if (!workflow) {

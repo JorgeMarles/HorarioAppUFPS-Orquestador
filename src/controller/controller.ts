@@ -4,7 +4,7 @@ import { WorkflowService } from '../service/workflow-service.js';
 import { JobResponse, JobResponseSchema } from '../interface/workflow-response-interfaces.js';
 import { FetcherService } from '../service/fetcher-service.js';
 
-@Route("workflow")
+@Route("/api/orchestrator/workflow")
 class WorkflowController extends Controller {
 
     @Post("")
