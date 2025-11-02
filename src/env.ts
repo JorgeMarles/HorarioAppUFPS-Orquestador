@@ -9,22 +9,26 @@ const envSchema = z.object({
   SELF_URL: z.string().url("Given SELF_URL isn't a valid URL").default("http://localhost:3000"),
   FETCHER_URL: z.string().url("Given FETCHER_URL isn't a valid URL"),
   MAIN_BACKEND_URL: z.string().url("Given MAIN_BACKEND_URL isn't a valid URL"),
-  WORKERS: z.number().int("The num of concurrent Workers must be an integer").default(1)
+  WORKERS: z.coerce.number().int("The num of concurrent Workers must be an integer").default(1),
+  GOOGLE_EMAIL: z.string().email(),
+  GOOGLE_PASSWORD: z.string(),
+  DIVISIST_URL: z.string().url("Given DIVISIST_URL isn't a valid URL"),
 });
 
 try {
-  // eslint-disable-next-line node/no-process-env  
+  // eslint-disable-next-line node/no-process-env
   envSchema.parse(process.env);
-
-} catch (error) {
-  if (error instanceof z.ZodError) {    
-    console.error("Missing environment variables:", error.issues.flatMap(issue => issue.path), error.name);
+}
+catch (error) {
+  if (error instanceof z.ZodError) {
+    console.error("Error with Environment Variable:", error.flatten());
   }
   else {
     console.error(error);
   }
   process.exit(1);
 }
+
 
 // eslint-disable-next-line node/no-process-env
 export const env = envSchema.parse(process.env);

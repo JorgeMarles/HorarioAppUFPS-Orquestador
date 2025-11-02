@@ -3,20 +3,38 @@ import { apiLogger } from '../util/logger.js';
 import { WorkflowService } from '../service/workflow-service.js';
 import { JobResponse, JobResponseSchema } from '../interface/workflow-response-interfaces.js';
 import { FetcherService } from '../service/fetcher-service.js';
+import { convertWorkflowToDTO, WorkflowDTO } from '../interface/workflow-dtos.js';
 
-@Route("/api/orchestrator/workflow")
+@Route("workflow")
 class WorkflowController extends Controller {
 
-    @Post("")
+    @Post("start")
     @SuccessResponse("200", "Workflow process started")
-    public async start(@Body() request: { ci_session: string }): Promise<{ message: string }> {
-        await WorkflowService.createWorkflow(request.ci_session)
-        return {
-            message: `Flujo de trabajo iniciado correctamente`,
-        };
+    public async start(@Body() request: { ci_session: string }): Promise<WorkflowDTO> {
+        const workflow = await WorkflowService.createWorkflow(request.ci_session)
+        return convertWorkflowToDTO(workflow);
     }
 
-    @Post("/job/{jobId}")
+    @Get("active")
+    public async getActiveWorkflows(){
+        const workflows = await WorkflowService.getCurrentWorkflows();
+        const data = workflows.map(convertWorkflowToDTO);
+        return data;
+    }
+
+     @Get("{uuid}")
+    public async getWorkflowData(@Path("uuid") uuid: string) {
+        const workflow = await WorkflowService.getWorkflowById(uuid);
+        if(!workflow){
+            this.setStatus(404);
+            return {
+                message: "workflow not found"
+            }
+        }
+        return convertWorkflowToDTO(workflow);
+    }
+
+    @Post("job/{jobId}")
     public async updateJob(@Body() body: any, @Path("jobId") jobId: number ) {        
         if(body.data){
             if(body.data.code){
@@ -30,10 +48,7 @@ class WorkflowController extends Controller {
         await FetcherService.endJob(job);
     }
 
-    @Get("{uuid}")
-    public async getWorkflowData(@Path("uuid") uuid: string) {
-        return WorkflowService.buildDataFromWorkflow(uuid)
-    }
+   
 }
 
 export { WorkflowController };

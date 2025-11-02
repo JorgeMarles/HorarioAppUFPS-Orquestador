@@ -27,7 +27,6 @@ export interface JobDTO {
 }
 
 
-// Helper para convertir de Prisma a DTO
 export function convertWorkflowToDTO(workflow: WorkflowType): WorkflowDTO {
 
   const completed = workflow.jobs.reduce((curr: number, obj) =>
@@ -50,13 +49,13 @@ export function convertWorkflowToDTO(workflow: WorkflowType): WorkflowDTO {
   };
 }
 
-export function convertJobToDTO(job: any): JobDTO {
+export function convertJobToDTO(job: Job): JobDTO {
   return {
-    id: job.id,
+    id: Number(job.id),
     number: job.number,
     type: job.type,
     state: job.state,
-    response: job.response,
+    response: job.response ?? undefined,
     description: job.description,
     workflowId: job.workflowId,
     createdAt: job.createdAt.toISOString(),

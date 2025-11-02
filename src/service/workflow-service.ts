@@ -29,6 +29,11 @@ export class WorkflowService {
     return workflows;
   }
 
+  static async getWorkflowById(uuid: string){
+    const workflow = await getWorkflowById(uuid);
+    return workflow;
+  }
+
   static async buildDataFromWorkflow(workflowId: string) {
     const workflow = await getWorkflowById(workflowId);
     if (!workflow) {

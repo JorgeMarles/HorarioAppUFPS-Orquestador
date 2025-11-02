@@ -4,7 +4,7 @@ import { PensumFull } from "../interface/workflow-response-interfaces";
 
 
 export async function sendRequestToFetcher(request: FetchingRequest) {
-    await fetch(`${env.FETCHER_URL}/fetch`, {
+    await fetch(`${env.FETCHER_URL}/api/fetcher/fetch`, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request)
