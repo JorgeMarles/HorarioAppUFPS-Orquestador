@@ -75,7 +75,10 @@ const SubjectFullSchema = z.object({
     code: z.string(),
     groupsMap: z.record(z.string(), GroupDataSchema).optional(),
     groups: z.array(GroupDataSchema),
-    equivalences: z.array(z.string()),
+    equivalences: z.array(z.object({
+        code: z.string(),
+        name: z.string()
+    })),
     name: z.string(),
     credits: z.number(),
     hours: z.number(),

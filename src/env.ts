@@ -9,10 +9,8 @@ const envSchema = z.object({
   SELF_URL: z.string().url("Given SELF_URL isn't a valid URL").default("http://localhost:3000"),
   FETCHER_URL: z.string().url("Given FETCHER_URL isn't a valid URL"),
   MAIN_BACKEND_URL: z.string().url("Given MAIN_BACKEND_URL isn't a valid URL"),
+  COOKIE_GETTER_URL: z.string().url("Given COOKIE_GETTER_URL isn't a valid URL"),
   WORKERS: z.coerce.number().int("The num of concurrent Workers must be an integer").default(1),
-  GOOGLE_EMAIL: z.string().email(),
-  GOOGLE_PASSWORD: z.string(),
-  DIVISIST_URL: z.string().url("Given DIVISIST_URL isn't a valid URL"),
 });
 
 try {
