@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkflowState {
+  PROCESSING
+  ERROR
+  SUCCESS
+  STOPPED
+}
+
+enum JobState {
+  PENDING
+  ERROR
+  SUCCESS
+}
+
+enum JobType {
+  PENSUM_INFO
+  SUBJECT_INFO
+  EQUIVALENCE_INFO
+}
+
+model Workflow {
+  id                String        @id @default(uuid()) @db.Uuid
+  start             DateTime      @default(now()) @map("start_date")
+  end               DateTime?     @map("end_date")
+  state             WorkflowState @default(PROCESSING)
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+  isUpdateTeachers  Boolean       @default(true)
+  data              Json?
+  jobs              Job[]
+
+  @@map("workflows")
+}
+
+model Job {
+  id          BigInt   @id @default(autoincrement())
+  number      Int
+  type        JobType
+  data        Json?
+  state       JobState @default(PENDING)
+  response    String?
+  description String
+  workflowId  String   @map("workflow_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@map("jobs")
+}

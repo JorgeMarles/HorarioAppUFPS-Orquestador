@@ -1,0 +1,156 @@
+{
+	"openapi": "3.0.0",
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"Record_string._name_63_-string--code_63_-string--groups_63_-Record_string._name_63_-string--teacher_63_-string--program_63_-string--maxCapacity_63_-number--availableCapacity_63_-number--sessions_63__58__day_63_-number--beginHour_63_-number--endHour_63_-number--classroom_63_-string_-Array__--type_63_-MANDATORY-or-ELECTIVE--equivalences_63_-string-Array--credits_63_-number--hours_63_-number--semester_63_-number--requiredCredits_63_-number--requisites_63_-string-Array__": {
+				"properties": {},
+				"type": "object",
+				"description": "Construct a type with a set of properties K of type T"
+			}
+		},
+		"securitySchemes": {}
+	},
+	"info": {
+		"title": "orchestrator-horarioappufps",
+		"version": "2.0.0",
+		"description": "Orchestrator for Web Scrappers in HorarioAppUFPS",
+		"license": {
+			"name": "MIT"
+		},
+		"contact": {
+			"name": "CJ R. ",
+			"email": "cj@null.computer",
+			"url": "https://w3cj.now.sh"
+		}
+	},
+	"paths": {
+		"/workflow": {
+			"post": {
+				"operationId": "Start",
+				"responses": {
+					"200": {
+						"description": "Workflow process started",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"message": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"message"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"ci_session": {
+										"type": "string"
+									}
+								},
+								"required": [
+									"ci_session"
+								],
+								"type": "object"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/workflow/job/{jobId}": {
+			"post": {
+				"operationId": "UpdateJob",
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "jobId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {}
+						}
+					}
+				}
+			}
+		},
+		"/workflow/{uuid}": {
+			"get": {
+				"operationId": "GetWorkflowData",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"subjects": {
+											"$ref": "#/components/schemas/Record_string._name_63_-string--code_63_-string--groups_63_-Record_string._name_63_-string--teacher_63_-string--program_63_-string--maxCapacity_63_-number--availableCapacity_63_-number--sessions_63__58__day_63_-number--beginHour_63_-number--endHour_63_-number--classroom_63_-string_-Array__--type_63_-MANDATORY-or-ELECTIVE--equivalences_63_-string-Array--credits_63_-number--hours_63_-number--semester_63_-number--requiredCredits_63_-number--requisites_63_-string-Array__"
+										},
+										"updateTeachers": {
+											"type": "boolean"
+										},
+										"semesters": {
+											"type": "number",
+											"format": "double"
+										},
+										"name": {
+											"type": "string"
+										}
+									},
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "uuid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	]
+}
