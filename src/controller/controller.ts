@@ -4,6 +4,7 @@ import { WorkflowService } from '../service/workflow-service.js';
 import { JobResponse, JobResponseSchema } from '../interface/workflow-response-interfaces.js';
 import { FetcherService } from '../service/fetcher-service.js';
 import { convertWorkflowToDTO, WorkflowDTO } from '../interface/workflow-dtos.js';
+import cookieGetter from '../util/cookie-getter.js';
 
 @Route("workflow")
 class WorkflowController extends Controller {
@@ -46,6 +47,15 @@ class WorkflowController extends Controller {
         const job: JobResponse = JobResponseSchema.parse(body);
         job.jobId = jobId;
         await FetcherService.endJob(job);
+    }
+
+    @Post("cookie")
+    public async updateCookie(@Body() body: {cookie: string}) {
+        if(body.cookie && /^[a-fA-F0-9]{40}$/.test(body.cookie)){
+            cookieGetter.setCookie(body.cookie);
+        }else{
+            throw new Error(`${body.cookie} not valid`)
+        }
     }
 
    
