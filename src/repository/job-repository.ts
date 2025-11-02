@@ -79,6 +79,17 @@ export async function failJob(id: number, errorMessage: string) {
   return await updateJobState(id, JobState.ERROR, errorMessage);
 }
 
+export async function getNextPendingJob(workflowId: string) {
+  return await prisma.job.findFirst({
+    where: {
+      workflowId: workflowId,
+      state: JobState.PENDING
+    },
+    orderBy: {
+      number: 'asc'
+    }
+  })
+}
 
 // Update job state and response
 export async function updateJobState(id: number, state: JobState, response?: string, data?: DataUnion) {

@@ -11,7 +11,7 @@ const SessionDataSchema = z.object({
 })
 
 const GroupDataSchema = z.object({
-    name: z.string(),
+    code: z.string(),
     teacher: z.string(),
     program: z.string(),
     maxCapacity: z.number(),
@@ -73,7 +73,8 @@ type DataUnion = z.infer<typeof DataUnionSchema>
 
 const SubjectFullSchema = z.object({
     code: z.string(),
-    groups: z.record(z.string(), GroupDataSchema),
+    groupsMap: z.record(z.string(), GroupDataSchema).optional(),
+    groups: z.array(GroupDataSchema),
     equivalences: z.array(z.string()),
     name: z.string(),
     credits: z.number(),

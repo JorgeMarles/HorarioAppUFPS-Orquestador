@@ -97,9 +97,17 @@ export class FetcherService {
         if (success) {
             //Gather all pensum data and send to main backend
             //const data: PensumFull
-            const pensumFull: PensumFull = await WorkflowService.buildDataFromWorkflow(workflowId)
-            await sendRequestToMainBackend(pensumFull);
+            try {
+                const pensumFull: PensumFull = await WorkflowService.buildDataFromWorkflow(workflowId)
+                await sendRequestToMainBackend(pensumFull);
+            } catch(error){
+                fetchLogger.error(error);
+                success = false;
+                workflow = await updateWorkflowState(workflow.id, WorkflowState.ERROR)
+            }
+            
         }
+        
 
         await Promise.all(
             workflow.jobs.map(
@@ -115,8 +123,10 @@ export class FetcherService {
      */
     static async checkForCompletion(workflowId: string) {
         const count = await getPendingJobsCountByWorkflowId(workflowId);
+        fetchLogger.info({ count }, "Jobs remaining:")
         if (count === 0) {
             //Ends
+            fetchLogger.info("Ending workflow")
             this.endWorkflow(workflowId, true);
         }
     }
@@ -126,6 +136,7 @@ export class FetcherService {
      * @param response the JobResponse
      */
     static async endJob(response: JobResponse) {
+        fetchLogger.info({ id: response.jobId, success: response.success, response: response.response }, "Ending job")
         const job: Job = await this.validateJob(response);
         if (job.state != JobState.PENDING) {
             const errorMsg = `Tried to end already ended Job with id ${job.id}`

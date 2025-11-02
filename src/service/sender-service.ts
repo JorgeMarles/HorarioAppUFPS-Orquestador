@@ -5,20 +5,27 @@ import { apiLogger } from "../util/logger";
 
 
 export async function sendRequestToFetcher(request: FetchingRequest) {
-    await fetch(`${env.FETCHER_URL}/fetch`, {
+
+    apiLogger.info(`Sending to fetcher backend ${JSON.stringify(request)}`);
+    const response = await fetch(`${env.FETCHER_URL}/fetch`, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request)
     })
+    if(!response.ok){
+        throw new Error(`HTTP Error ${`${env.FETCHER_URL}/fetch`} ${response.status} ${response.statusText}`)
+    }
 }
 
 export async function sendRequestToMainBackend(request: PensumFull){
+    apiLogger.info(`Sending to main backend ${request.subjects?.length} subjects`);
 
-    apiLogger.info(JSON.stringify(request));
-
-    await fetch(`${env.MAIN_BACKEND_URL}/pensum`, {
+    const response = await fetch(`${env.MAIN_BACKEND_URL}/pensum`, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request)
     })
+    if(!response.ok){
+        throw new Error(`HTTP Error ${response.status} ${response.statusText}`)
+    }
 }

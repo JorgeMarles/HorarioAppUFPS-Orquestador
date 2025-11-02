@@ -8,13 +8,12 @@ import { PensumData, PensumFull, SubjectData } from '../interface/workflow-respo
 // Helper functions
 export class WorkflowService {
 
-  static async createWorkflow(cookie: string) {
+  static async createWorkflow() {
     const currentWorkflow = await getCurrentWorkflows();
     if (currentWorkflow.length > 0) {
       throw Error("No se puede crear Flujo de Trabajo, ya hay uno ejecutándose");
     }
     const workflow = await createWorkflow();
-    cookieGetter.setCookie(cookie);
     await FetcherService.startJobT1(workflow.id)
     return workflow;
   }
@@ -29,7 +28,7 @@ export class WorkflowService {
     return workflows;
   }
 
-  static async getWorkflowById(uuid: string){
+  static async getWorkflowById(uuid: string) {
     const workflow = await getWorkflowById(uuid);
     return workflow;
   }
@@ -58,7 +57,7 @@ export class WorkflowService {
     const equivalencesArr = segregatedJobs[JobType.EQUIVALENCE_INFO].map(el => el.data as SubjectData);
 
     const equivalences: Record<string, SubjectData> = equivalencesArr.reduce((acc, obj) => {
-      if(!obj) return acc;
+      if (!obj) return acc;
       const key = obj.code;
       acc[key] = obj;
       return acc
@@ -80,7 +79,8 @@ export class WorkflowService {
         code: code,
         credits: subject.credits,
         equivalences: [],
-        groups: {},
+        groupsMap: {},
+        groups: [],
         hours: subject.hours,
         name: subject.name,
         requiredCredits: subject.requiredCredits,
@@ -93,17 +93,29 @@ export class WorkflowService {
     for (const subject of subjects) {
       pensumFull.subjectsMap![subject.code] = {
         ...pensumFull.subjectsMap![subject.code],
-        groups: subject.groups,
+        groupsMap: subject.groups,
         equivalences: subject.equivalences
       }
 
-      for(const equivalenceCode of subject.equivalences){
+      for (const equivalenceCode of subject.equivalences) {
         const equivalence = equivalences[equivalenceCode];
-        if(!equivalence) continue;
-        for(const eqGroup in equivalence.groups){
-          pensumFull.subjectsMap![subject.code].groups[eqGroup] = equivalence.groups[eqGroup]
+        if (!equivalence) continue;
+        if (Object.keys(pensumFull.subjectsMap![subject.code].groupsMap!).length === 0){
+          continue;
+        }
+        for (const eqGroup in equivalence.groups) {
+          pensumFull.subjectsMap![subject.code].groupsMap![eqGroup] = equivalence.groups[eqGroup]
         }
       }
+    }
+
+    pensumFull.subjects = Object.values(pensumFull.subjectsMap!)
+    delete pensumFull.subjectsMap;
+
+    for (const subject of pensumFull.subjects) {
+      subject.groups = Object.values(subject.groupsMap!);
+
+      delete subject.groupsMap;
     }
 
     return pensumFull;

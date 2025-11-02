@@ -5,14 +5,15 @@ import { JobResponse, JobResponseSchema } from '../interface/workflow-response-i
 import { FetcherService } from '../service/fetcher-service.js';
 import { convertWorkflowToDTO, WorkflowDTO } from '../interface/workflow-dtos.js';
 import cookieGetter from '../util/cookie-getter.js';
+import { sendRequestToMainBackend } from '../service/sender-service.js';
 
 @Route("workflow")
 class WorkflowController extends Controller {
 
     @Post("start")
     @SuccessResponse("200", "Workflow process started")
-    public async start(@Body() request: { ci_session: string }): Promise<WorkflowDTO> {
-        const workflow = await WorkflowService.createWorkflow(request.ci_session)
+    public async start(): Promise<WorkflowDTO> {
+        const workflow = await WorkflowService.createWorkflow()
         return convertWorkflowToDTO(workflow);
     }
 
@@ -59,6 +60,12 @@ class WorkflowController extends Controller {
     }
 
    
+    @Post("/retry/{uuid}")
+    public async retryCoso(@Path("uuid") uuid: string){
+        const data = await WorkflowService.buildDataFromWorkflow(uuid);
+        apiLogger.info(JSON.stringify(data));
+        await sendRequestToMainBackend(data);
+    }
 }
 
 export { WorkflowController };

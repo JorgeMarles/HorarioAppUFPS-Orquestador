@@ -9,8 +9,9 @@ const connection = new IORedis(env.REDIS_URL, { maxRetriesPerRequest: null });
 const queue = new Queue<FetchingRequest>("scraperQueue", { connection });
 
 
-async function sleep(ms: number = env.DELAY_MS): Promise<void> {
-  await new Promise(r => setTimeout(r, ms));
+async function sleep(ms: number = env.DELAY_MS, random: boolean = false): Promise<void> {
+  const rnd = Math.random()*(3000)+1000;
+  await new Promise(r => setTimeout(r, ms + (random ? rnd : 0)));
 }
 
 // Worker del orquestador con integración a BD
@@ -30,7 +31,7 @@ const worker = new Worker<FetchingRequest>(
       await sendRequestToFetcher(request);
 
       queueLogger.debug('Starting cooldown period...');
-      await sleep();
+      await sleep(undefined, true);
 
     } catch (error) {
       queueLogger.error({

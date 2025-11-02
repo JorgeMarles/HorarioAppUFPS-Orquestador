@@ -4,7 +4,7 @@ import { WorkflowType } from "./db-interfaces";
 
 
 export interface WorkflowDTO {
-  id: string;
+  uuid: string;
   start: string;
   end?: string;
   state: string;
@@ -38,7 +38,7 @@ export function convertWorkflowToDTO(workflow: WorkflowType): WorkflowDTO {
   const progress = total === 0 ? 0 : (completed / total) * 100;
 
   return {
-    id: workflow.id,
+    uuid: workflow.id,
     start: workflow.start.toISOString(),
     end: workflow.end?.toISOString(),
     state: workflow.state,
