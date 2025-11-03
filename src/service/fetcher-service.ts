@@ -125,6 +125,7 @@ export class FetcherService {
             )
         )
         //TODO: This won't be good when there is other workflows at the same time
+        cookieGetter.setCookie("")
         await queue.drain();
     }
 
