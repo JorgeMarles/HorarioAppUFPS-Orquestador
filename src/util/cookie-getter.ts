@@ -6,9 +6,9 @@ class CookieGetter {
     private cookie: string = "";
 
     public async getCookie(){
-        return this.cookie;
-        /*
-        While making automation
+        //return this.cookie;
+        
+        //While making automation
         const endpoint = "/cookie"
 
         const response = await fetch(`${env.COOKIE_GETTER_URL}${endpoint}`, {
@@ -16,7 +16,7 @@ class CookieGetter {
         })
         this.cookie = (await response.json()).cookie;
         return this.cookie;
-        */
+        
     }
 
     public setCookie(cookie: string){
