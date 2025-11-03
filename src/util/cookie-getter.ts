@@ -5,9 +5,13 @@ import { env } from "../env";
 class CookieGetter {
     private cookie: string = "";
 
-    public async getCookie(){
+    public async getCookie() {
+        if (this.cookie !== "") {
+            return this.cookie;
+        }
+
         //return this.cookie;
-        
+
         //While making automation
         const endpoint = "/cookie"
 
@@ -16,10 +20,10 @@ class CookieGetter {
         })
         this.cookie = (await response.json()).cookie;
         return this.cookie;
-        
+
     }
 
-    public setCookie(cookie: string){
+    public setCookie(cookie: string) {
         this.cookie = cookie;
     }
 }
