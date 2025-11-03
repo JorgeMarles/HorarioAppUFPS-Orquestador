@@ -85,7 +85,10 @@ const SubjectFullSchema = z.object({
     semester: z.number(),
     requiredCredits: z.number().default(0),
     type: z.enum(["MANDATORY", "ELECTIVE"]),
-    requisites: z.array(z.string()),
+    requisites: z.array(z.object({
+        code: z.string(),
+        name: z.string()
+    })),
 })
 
 const PensumFullSchema = z.object({
