@@ -15,6 +15,7 @@ export async function sendRequestToFetcher(request: FetchingRequest) {
     if(!response.ok){
         throw Error(`HTTP Error ${`${env.FETCHER_URL}/fetch`} ${response.status} ${response.statusText}`)
     }
+    return await response.json();
 }
 
 export async function sendRequestToMainBackend(request: PensumFull){
