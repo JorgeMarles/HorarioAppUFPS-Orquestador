@@ -13,7 +13,7 @@ export async function sendRequestToFetcher(request: FetchingRequest) {
         body: JSON.stringify(request)
     })
     if(!response.ok){
-        throw new Error(`HTTP Error ${`${env.FETCHER_URL}/fetch`} ${response.status} ${response.statusText}`)
+        throw Error(`HTTP Error ${`${env.FETCHER_URL}/fetch`} ${response.status} ${response.statusText}`)
     }
 }
 
@@ -26,6 +26,6 @@ export async function sendRequestToMainBackend(request: PensumFull){
         body: JSON.stringify(request)
     })
     if(!response.ok){
-        throw new Error(`HTTP Error ${response.status} ${response.statusText}`)
+        throw Error(`HTTP Error ${response.status} ${response.statusText}`)
     }
 }

@@ -4,6 +4,7 @@ import { env } from "../env.js";
 import { queueLogger } from "../util/logger.js";
 import { FetchingRequest } from "../interface/workflow-request-interfaces.js";
 import { sendRequestToFetcher } from "./sender-service.js";
+import { FetcherService } from "./fetcher-service.js";
 
 const connection = new IORedis(env.REDIS_URL, { maxRetriesPerRequest: null });
 const queue = new Queue<FetchingRequest>("scraperQueue", { connection });
@@ -55,6 +56,15 @@ worker.on("failed", async (job: Job<FetchingRequest> | undefined, err: Error) =>
     name: `${request.jobId} - ${request.type}`,
     error: err.message
   }, 'Job failed');
+  const maxAttempts = job?.opts.attempts || 5;
+  const currentAttempt = job?.attemptsMade || 1;
+  if(currentAttempt >= maxAttempts){
+    await FetcherService.endJob({
+      jobId: request.jobId!,
+      response: `Sending request ${request.type} to fetcher failed`,
+      success: false
+    });
+  }
 });
 
 export { queue };
