@@ -84,7 +84,7 @@ export class WorkflowService {
         hours: subject.hours,
         name: subject.name,
         requiredCredits: subject.requiredCredits,
-        requisites: subject.requisites,
+        requisites: subject.requisites.map(e => { return { code: e, name: "" } }),
         semester: subject.semester,
         type: subject.type
       }
@@ -94,7 +94,7 @@ export class WorkflowService {
       pensumFull.subjectsMap![subject.code] = {
         ...pensumFull.subjectsMap![subject.code],
         groupsMap: subject.groups,
-        equivalences: subject.equivalences.map(e => {return{ code: e, name: "" }})
+        equivalences: subject.equivalences.map(e => { return { code: e, name: "" } })
       }
 
       for (const equivalenceCode of subject.equivalences) {
