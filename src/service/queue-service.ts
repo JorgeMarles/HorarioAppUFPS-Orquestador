@@ -31,6 +31,8 @@ const worker = new Worker<FetchingRequest>(
       }, 'Processing job started');
 
       const response = await sendRequestToFetcher(request);
+      console.log(response);
+      
       const jobResponse: JobResponse = JobResponseSchema.parse(response);
       await FetcherService.endJob(jobResponse);
 
