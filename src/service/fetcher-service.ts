@@ -23,7 +23,17 @@ export class FetcherService {
      */
     static async getCookie(): Promise<string> {
         //Here, somehow i will get and return the cookie
-        return cookieGetter.getCookie();
+        const MAX_RETRIES = 3;
+        let n = 0;
+        while(n < MAX_RETRIES){
+            try {
+                let cookie = await cookieGetter.getCookie();
+                return cookie;
+            } catch (error) {
+                n++;
+            }   
+        }
+        throw Error(`Couldn't get cookie`)
     }
 
     /**
@@ -138,10 +148,10 @@ export class FetcherService {
     static async endJob(response: JobResponse) {
         fetchLogger.info({ id: response.jobId, success: response.success, response: response.response }, "Ending job")
         const job: Job = await this.validateJob(response);
-        if (job.state != JobState.PENDING) {
+        if (job.state == JobState.SUCCESS) {
             const errorMsg = `Tried to end already ended Job with id ${job.id}`
-            fetchLogger.error({ job }, errorMsg)
-            throw Error(errorMsg)
+            fetchLogger.warn({ job }, errorMsg)
+            return;
         }
         if (response.success) {
             fetchLogger.info({ id: job.id }, "Ended ok");
