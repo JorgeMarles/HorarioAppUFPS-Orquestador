@@ -1,9 +1,11 @@
 import { JobState, JobType, WorkflowState } from '@prisma/client';
 import prisma from '../db/prisma.js';
-import { createWorkflow, getAllWorkflows, getCurrentWorkflows, getWorkflowById } from '../repository/workflow-repository.js';
+import { createWorkflow, getAllWorkflows, getCurrentWorkflows, getWorkflowById, updateWorkflowState } from '../repository/workflow-repository.js';
 import { FetcherService } from './fetcher-service.js';
 import cookieGetter from '../util/cookie-getter.js';
 import { PensumData, PensumFull, SubjectData } from '../interface/workflow-response-interfaces.js';
+import { failJob } from '../repository/job-repository.js';
+import { queue } from './queue-service.js';
 
 // Helper functions
 export class WorkflowService {
@@ -16,6 +18,31 @@ export class WorkflowService {
     const workflow = await createWorkflow();
     await FetcherService.startJobT1(workflow.id)
     return workflow;
+  }
+
+  /**
+   * Stops a workflow, setting all its pending jobs to error
+   * @param uuid 
+   * @returns 
+   */
+  static async stopWorkflow(uuid: string) {
+    const workflow = await getWorkflowById(uuid);
+    if (!workflow) {
+      throw Error(`Workflow with id ${uuid} doesn't exist`);
+    }
+    if (workflow.state !== "PROCESSING") {
+      throw Error(`Cant stop workflow ${uuid}: It has already finished`)
+    }
+
+    await Promise.all(workflow.jobs.map(async (e) => {
+      if (e.state !== "SUCCESS")
+        await failJob(Number(e.id), "Workflow stopped")
+    }))
+
+    await updateWorkflowState(uuid, "STOPPED")
+    queue.drain();
+    cookieGetter.setCookie("")
+    return uuid;
   }
 
   static async getAllWorkflows() {

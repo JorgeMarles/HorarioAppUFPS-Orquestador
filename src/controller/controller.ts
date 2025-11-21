@@ -1,4 +1,4 @@
-import { Controller, Post, Route, Body, SuccessResponse, Get, Path } from 'tsoa';
+import { Controller, Post, Route, Body, SuccessResponse, Get, Path, Put } from 'tsoa';
 import { apiLogger } from '../util/logger.js';
 import { WorkflowService } from '../service/workflow-service.js';
 import { JobResponse, JobResponseSchema } from '../interface/workflow-response-interfaces.js';
@@ -47,7 +47,13 @@ class WorkflowController extends Controller {
         }
         const job: JobResponse = JobResponseSchema.parse(body);
         job.jobId = jobId;
-        await FetcherService.endJob(job);
+        return await FetcherService.endJob(job);
+    }
+
+    @Put("{uuid}/end")
+    public async stopWorkflow(@Path("uuid") uuid: string) {
+        const workflow = await WorkflowService.stopWorkflow(uuid);
+        return {uuid: workflow};
     }
 
     @Post("cookie")
