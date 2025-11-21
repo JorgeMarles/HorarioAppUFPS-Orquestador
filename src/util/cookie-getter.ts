@@ -1,6 +1,5 @@
 import { env } from "../env";
 
-
 //Here, i will log in to Divisist, use my credentials and automatically get the cookie
 class CookieGetter {
     private cookie: string = "";
@@ -18,9 +17,12 @@ class CookieGetter {
         const response = await fetch(`${env.COOKIE_GETTER_URL}${endpoint}`, {
             method: "GET"
         })
-        this.cookie = (await response.json()).cookie;
+        const data = await response.json();
+        if(data.error){
+            throw Error (`Error getting cookie: ${data.msg}`)
+        }
+        this.cookie = data.cookie;
         return this.cookie;
-
     }
 
     public setCookie(cookie: string) {

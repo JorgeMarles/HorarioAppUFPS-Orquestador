@@ -25,13 +25,17 @@ export class FetcherService {
         //Here, somehow i will get and return the cookie
         const MAX_RETRIES = 3;
         let n = 0;
-        while(n < MAX_RETRIES){
+        while (n < MAX_RETRIES) {
             try {
                 let cookie = await cookieGetter.getCookie();
                 return cookie;
             } catch (error) {
+                fetchLogger.info("Catch error getting cookie ")
                 n++;
-            }   
+                if (n >= MAX_RETRIES) {
+                    throw Error(`Couldn't get cookie: ${error}`)
+                }
+            }
         }
         throw Error(`Couldn't get cookie`)
     }
@@ -44,14 +48,22 @@ export class FetcherService {
      */
     static async startJob(data: CreateJobData, requestData: FetchingRequestData) {
         const job = await createJob(data);
-        const cookie = await this.getCookie();
-        const request: FetchingRequest = {
-            jobId: Number(job.id),
-            cookie: cookie,
-            ...requestData
+        try {
+            const cookie = await this.getCookie();
+            const request: FetchingRequest = {
+                jobId: Number(job.id),
+                cookie: cookie,
+                ...requestData
+            }
+            await queue.add('fetch', request)
+            return job;
+        } catch (error) {
+            await this.endJob({
+                response: error instanceof Error ? error.message : String(error),
+                success: false,
+                jobId: Number(job.id)
+            });
         }
-        await queue.add('fetch', request)
-        return job;
     }
 
     /**
@@ -102,6 +114,10 @@ export class FetcherService {
             fetchLogger.error(errMsg);
             throw Error(errMsg);
         }
+        if (workflow.state !== "PROCESSING") {
+            fetchLogger.warn(`Tried to end already ended workflow ${workflowId}`);
+            return;
+        }
         workflow = await updateWorkflowState(workflow.id, success ? WorkflowState.SUCCESS : WorkflowState.ERROR);
 
         if (success) {
@@ -110,14 +126,14 @@ export class FetcherService {
             try {
                 const pensumFull: PensumFull = await WorkflowService.buildDataFromWorkflow(workflowId)
                 await sendRequestToMainBackend(pensumFull);
-            } catch(error){
+            } catch (error) {
                 fetchLogger.error(error);
                 success = false;
                 workflow = await updateWorkflowState(workflow.id, WorkflowState.ERROR)
             }
-            
+
         }
-        
+
 
         await Promise.all(
             workflow.jobs.map(
@@ -149,19 +165,27 @@ export class FetcherService {
     static async endJob(response: JobResponse) {
         fetchLogger.info({ id: response.jobId, success: response.success, response: response.response }, "Ending job")
         const job: Job = await this.validateJob(response);
+        
         if (job.state == JobState.SUCCESS) {
             const errorMsg = `Tried to end already ended Job with id ${job.id}`
             fetchLogger.warn({ job }, errorMsg)
             return;
         }
+        const workflow: Workflow | null = await getWorkflowById(job.workflowId);
+        if(workflow?.state !== "PROCESSING"){
+            const errorMsg = `Tried to end already ended Job with id ${job.id}`
+            fetchLogger.warn({ job }, errorMsg)
+            await failJob(response.jobId, "Previous error: this job never executed")
+            return;
+        }
         if (response.success) {
             fetchLogger.info({ id: job.id }, "Ended ok");
+            await completeJob(response.jobId, response.response, response.data)
             if (job.type === JobType.PENSUM_INFO) {
                 await this.endJobT1(job, response);
             } else {
                 await this.endJobT2OrT3(job, response);
             }
-            await completeJob(response.jobId, response.response, response.data)
             await this.checkForCompletion(job.workflowId);
         } else {
             await failJob(response.jobId, response.response)
