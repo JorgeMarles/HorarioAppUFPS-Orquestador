@@ -16,7 +16,7 @@ export class WorkflowService {
       throw Error("No se puede crear Flujo de Trabajo, ya hay uno ejecutándose");
     }
     const workflow = await createWorkflow();
-    await FetcherService.startJobT1(workflow.id)
+    FetcherService.startJobT1(workflow.id)
     return workflow;
   }
 
