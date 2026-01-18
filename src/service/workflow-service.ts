@@ -127,9 +127,6 @@ export class WorkflowService {
       for (const equivalenceCode of subject.equivalences) {
         const equivalence = equivalences[equivalenceCode];
         if (!equivalence) continue;
-        if (Object.keys(pensumFull.subjectsMap![subject.code].groupsMap!).length === 0) {
-          continue;
-        }
         for (const eqGroup in equivalence.groups) {
           pensumFull.subjectsMap![subject.code].groupsMap![eqGroup] = equivalence.groups[eqGroup]
         }
